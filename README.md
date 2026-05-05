@@ -13,11 +13,9 @@
 - **试听模式** — 🎵 试听 toggle 开启后，选曲目库直接用真实音色播放（不模拟键盘、不切游戏窗口）
 
 ### 真实音色
-- 集成 10 套乐器音色：Piano / Harp / Flute / Guitar / Ukulele / Winter Piano / Xylophone / Electric Guitar / Bassoon / Orff
+- 集成 10 套乐器音色：Piano / Harp / Flute / Guitar / Ukulele / Winter Piano / Xylophone / Electric Guitar / Bassoon / Orff（已包含在仓库内）
 - 每键 4 路复音池，支持快速重复音
 - 编辑器下拉切换，持久化到 `settings.json`
-
-> ⚠️ **音色 wav 文件未包含在仓库内**（TGC 版权）。详见 [音色文件设置](#音色文件设置)。
 
 ### 钢琴卷帘编辑器（FL 风格）
 - **节拍网格** — BPM (30–400) + 每拍细分 (1/2/3/4/6/8/12/16)，cell 副线 / beat 中线 / bar 主线三层
@@ -58,33 +56,11 @@ git clone https://github.com/lingyunalingyun/Sky-Automatic-Piano-Assistant.git
 cd Sky-Automatic-Piano-Assistant
 ```
 
-### 2. 音色文件设置（可选，建议）
+### 2. 添加曲谱
 
-仓库**不包含**乐器 wav 文件。没有也能运行，但**没有声音**（试听 / 编辑器播放都静音；模拟按键演奏不受影响）。
+把 `.json` 或 `.txt` 格式的 Sky Music 曲谱放到 `songs/` 目录（程序启动会自动扫描）。仓库不预置曲谱。
 
-如需真实音色，自行从手机端 Sky Studio APK 提取：
-
-1. 下载 `Sky Studio 2.4.8` Android APK
-2. 用任意 zip 工具解压 APK
-3. 进入 `assets/audio/` 找到 10 套乐器目录
-4. 把每套乐器目录（`Piano/`, `Harp/` 等）放到本项目：
-   ```
-   src/main/resources/org/example/skymusicplayer/instruments/
-       Piano/
-           0.wav
-           1.wav
-           ... 14.wav
-       Harp/
-           0.wav
-           ...
-   ```
-5. 文件名必须是 `0.wav` 到 `14.wav`，对应游戏的 15 个琴键
-
-### 3. 添加曲谱
-
-把 `.json` 或 `.txt` 格式的 Sky Music 曲谱放到 `songs/` 目录（程序启动会自动扫描）。
-
-### 4. 启动
+### 3. 启动
 
 **Windows**：双击 `启动.bat`（自动检测 JAVA_HOME，自动 Maven 编译运行）
 
@@ -132,7 +108,7 @@ cd Sky-Automatic-Piano-Assistant
 │   └── resources/org/example/skymusicplayer/
 │       ├── hello-view.fxml           # 主窗口布局
 │       ├── dark.css                  # 暗色主题
-│       └── instruments/              # 乐器 wav (需自行添加)
+│       └── instruments/              # 10 套乐器 wav (15 键 × 10 套)
 ├── songs/                            # 曲谱目录 (需自行添加)
 ├── pom.xml                           # Maven 配置
 ├── 启动.bat                          # Windows 启动脚本
@@ -150,7 +126,6 @@ cd Sky-Automatic-Piano-Assistant
 ## 📜 版权与免责
 
 - 本项目代码采用 **MIT License**（详见 [LICENSE](LICENSE)）
-- 乐器音色 wav 文件版权归 **TGC (thatgamecompany)** 所有，仓库不包含，需自行从 Sky Studio APK 提取仅用于个人学习
 - 曲谱由用户社区贡献，版权归原作者
 - 本工具**仅供个人娱乐学习**，请勿用于商业用途；自动弹琴可能违反《光遇》用户协议，**使用风险自行承担**
 

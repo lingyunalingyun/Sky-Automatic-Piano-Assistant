@@ -40,8 +40,6 @@ build/
 .DS_Store
 
 ### 项目特定排除 ###
-# Sky Studio APK 提取的乐器音色 (TGC 版权, 用户需自行提取, 详见 README)
-src/main/resources/org/example/skymusicplayer/instruments/
 # 用户曲谱库 (体积大且第三方版权)
 songs/
 # 原始 APK 文件

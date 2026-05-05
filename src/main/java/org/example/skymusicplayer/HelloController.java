@@ -102,10 +102,63 @@ public class HelloController {
             + "-fx-border-radius: 6; -fx-background-radius: 6;";
 
     private final Map<String, Integer> keyMap = new HashMap<>();
-    private final String CONFIG_PATH = "key_config.json";
-    private static final String FAVORITES_PATH = "favorites.json";
-    private static final String CATEGORIES_PATH = "categories.json";
-    private static final String SETTINGS_PATH = "settings.json";
+    /**
+     * 数据根目录: jpackage 打包时跟 .exe 同目录, 开发时为 cwd.
+     * 所有 *.json 配置和 songs/ 都基于此.
+     */
+    static final java.nio.file.Path DATA_DIR = resolveDataDir();
+    static final String SONGS_DIR = DATA_DIR.resolve("songs").toString();
+    private final String CONFIG_PATH = DATA_DIR.resolve("key_config.json").toString();
+    private static final String FAVORITES_PATH = DATA_DIR.resolve("favorites.json").toString();
+    private static final String CATEGORIES_PATH = DATA_DIR.resolve("categories.json").toString();
+    private static final String SETTINGS_PATH = DATA_DIR.resolve("settings.json").toString();
+
+    /**
+     * 首次启动: 若 DATA_DIR/songs 不存在或为空, 解压 classpath 下的 songs.zip 到该目录.
+     * 打包成 exe 后让用户开箱即用; 开发环境若已有 songs/ 则跳过.
+     */
+    private static void ensureSongsExtracted() {
+        java.nio.file.Path songsDir = DATA_DIR.resolve("songs");
+        if (java.nio.file.Files.isDirectory(songsDir)) {
+            try (var stream = java.nio.file.Files.list(songsDir)) {
+                if (stream.findAny().isPresent()) return;
+            } catch (IOException e) { return; }
+        }
+        try (java.io.InputStream zin = HelloController.class.getResourceAsStream("songs.zip")) {
+            if (zin == null) return;
+            java.nio.file.Files.createDirectories(songsDir);
+            try (java.util.zip.ZipInputStream zip = new java.util.zip.ZipInputStream(zin)) {
+                java.util.zip.ZipEntry e;
+                int count = 0;
+                while ((e = zip.getNextEntry()) != null) {
+                    if (e.isDirectory()) continue;
+                    String name = e.getName().replace('\\', '/');
+                    if (name.startsWith("songs/")) name = name.substring(6);
+                    if (name.isEmpty() || name.contains("..")) continue;
+                    java.nio.file.Path out = songsDir.resolve(name);
+                    java.nio.file.Path parent = out.getParent();
+                    if (parent != null) java.nio.file.Files.createDirectories(parent);
+                    java.nio.file.Files.copy(zip, out, StandardCopyOption.REPLACE_EXISTING);
+                    count++;
+                }
+                System.out.println("[Init] 解压 " + count + " 首曲谱到 " + songsDir);
+            }
+        } catch (IOException e) {
+            System.err.println("[Init] 曲谱解压失败: " + e);
+        }
+    }
+
+    private static java.nio.file.Path resolveDataDir() {
+        // jpackage 给打包后的 launcher 设这个属性, 指向 .exe 的绝对路径
+        String appPath = System.getProperty("jpackage.app-path");
+        if (appPath != null && !appPath.isEmpty()) {
+            try {
+                java.nio.file.Path p = java.nio.file.Paths.get(appPath).toAbsolutePath().getParent();
+                if (p != null) return p;
+            } catch (Exception ignored) {}
+        }
+        return java.nio.file.Paths.get("").toAbsolutePath();
+    }
     private boolean loadingSettings = false;
     private int defaultBpm = 120;
     private int defaultSubdiv = 4;
@@ -131,6 +184,7 @@ public class HelloController {
 
     @FXML
     public void initialize() {
+        ensureSongsExtracted();
         loadKeyConfig();
         loadFavorites();
         loadCategories();
@@ -597,7 +651,7 @@ public class HelloController {
     }
 
     private File newSongFile(String songName) {
-        File folder = new File("songs");
+        File folder = new File(SONGS_DIR);
         if (!folder.exists()) folder.mkdir();
         String safe = songName.replaceAll("[\\\\/:*?\"<>|]", "_");
         return new File(folder, safe + ".json");
@@ -1191,7 +1245,7 @@ public class HelloController {
         List<File> files = chooser.showOpenMultipleDialog(window);
         if (files == null || files.isEmpty()) return;
 
-        File target = new File("songs");
+        File target = new File(SONGS_DIR);
         if (!target.exists()) target.mkdir();
 
         int imported = 0, failed = 0;
@@ -1214,7 +1268,7 @@ public class HelloController {
     protected void refreshLibrary() {
         allSongNames.clear();
         allSongFiles.clear();
-        File folder = new File("songs");
+        File folder = new File(SONGS_DIR);
         if (!folder.exists()) folder.mkdir();
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".json") || name.endsWith(".txt"));
         if (files != null) {
